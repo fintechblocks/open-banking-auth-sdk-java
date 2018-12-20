@@ -1,0 +1,22 @@
+{
+  "Data": {
+    "Initiation": {
+      "InstructionIdentification": "mobilVallet123",
+      "EndToEndIdentification": "29152852756654",
+      "InstructedAmount": {
+        "Amount": "1680.00",
+        "Currency": "HUF"
+      },
+      "CreditorAgent": {
+        "SchemeName": "BICFI",
+        "Identification": "UBRTHUHB"
+      },
+      "CreditorAccount": {
+        "SchemeName": "IBAN",
+        "Identification": "HU35120103740010183300200004",
+        "Name": "Deichmann Cipőkereskedelmi Korlátolt Felelősségű Társaság"
+      }
+    }
+  },
+  "Risk": {}
+}
