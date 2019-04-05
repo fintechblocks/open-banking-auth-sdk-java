@@ -20,19 +20,19 @@
 <%@page import="com.fintechblocks.java.sdk.OpenBankingAuth"%>
 <%@page import="com.fintechblocks.java.sdk.Utils"%>
 <%
-  String clientId = "miklosapp@payment-init-1.0";
-  String apiUrl = "https://api.sandbox.mkb.hu/payment-init-1.0/open-banking/v1.1";
+  String clientId = "myapp@payment-init-1.0";
+  String apiUrl = "https://<sandbox_api_host_of_the_bank>/payment-init-1.0/open-banking/v3.1/pisp";
   String scope = "payments";
   String redirectUri = "http://localhost:8080/example/paymentinit_example.jsp";
-  String tokenEndpointUri = "https://oidc-1.0.sandbox.mkb.hu/auth/realms/ftb-sandbox/protocol/openid-connect/token";
-  String authorizationEndpointURI = "https://oidc-1.0.sandbox.mkb.hu/auth/realms/ftb-sandbox/protocol/openid-connect/auth";
+  String tokenEndpointUri = "https://<sandbox_api_host_of_the_bank>/auth/realms/ftb-sandbox/protocol/openid-connect/token";
+  String authorizationEndpointURI = "https://<sandbox_api_host_of_the_bank>/auth/realms/ftb-sandbox/protocol/openid-connect/auth";
 
   String webRootPath = application.getRealPath("/").replace('\\', '/');
   Boolean code = false;
   String intentId = "";
 
   File privateKeyFile = new File(webRootPath + "WEB-INF/classes/private_key.pem");
-  File paymentFile = new File(webRootPath + "WEB-INF/classes/payment.json");
+  File paymentFile = new File(webRootPath + "WEB-INF/classes/domestic-payment-consent.json");
   String payment = Utils.fileToString(paymentFile);
 
   String privateKey = Utils.fileToString(privateKeyFile);
@@ -50,9 +50,9 @@
           paymentInitAuth.createSignatureHeader(payment, "C=UK, ST=England, L=London, O=Acme Ltd."));
       headers.put("x-idempotency-key", RandomStringUtils.random(20, true, true));
 
-      JsonNode paymentJson = callAPI(accessToken, apiUrl, "payments", "POST", headers, payment);
+      JsonNode paymentJson = callAPI(accessToken, apiUrl, "domestic-payment-consents", "POST", headers, payment);
 
-      intentId = paymentJson.get("Data").get("PaymentId").asText();
+      intentId = paymentJson.get("Data").get("ConsentId").asText();
 
       String state = RandomStringUtils.random(20, true, true);
       String nonce = RandomStringUtils.random(20, true, true);
@@ -60,6 +60,7 @@
 
       response.sendRedirect(authUrl + "&state=" + intentId);
     } catch (Exception e) {
+      out.println(e.toString());
       e.printStackTrace();
     }
   } else {
@@ -67,9 +68,10 @@
       JsonNode newAccessTokenJson = paymentInitAuth.exchangeToken(request.getParameter("code"));
       String newAccessToken = newAccessTokenJson.get("access_token").asText();
       intentId = request.getParameter("state");
-      JsonNode result = callAPI(newAccessToken, apiUrl, "payments/" + intentId, "GET", null, null);
+      JsonNode result = callAPI(newAccessToken, apiUrl, "domestic-payment-consents/" + intentId, "GET", null, null);
       out.println(result.toString());
     } catch (Exception e) {
+      out.println(e.toString());
       e.printStackTrace();
     }
   }

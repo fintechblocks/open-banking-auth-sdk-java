@@ -1,6 +1,6 @@
 # Java-SDK #
 
-## What is Open Banking Authorization Java SDK? ##
+## What is Java-SDK? ##
 
 This SDK provides tools for the integration of the Open Banking authorization flow into your Java server application.
 
@@ -12,9 +12,9 @@ This repository contains two subfolders:
 
 First read throught the Authorization part of API documentation.
 
-[Account-information API documentation](https://portal.sandbox.mkb.hu/api-documentation/account-info-1.0)
+Account-information API documentation: https://<sandbox_portal_host_of_the_bank>/api-documentation/account-info-1.0
 
-[Payment-initiation API documentation](https://portal.sandbox.mkb.hu/api-documentation/payment-init-1.0)
+Payment-initiation API documentation: https://<sandbox_portal_host_of_the_bank>/api-documentation/payment-init-1.0
 
 ### Create an OpenBankingAuth istance ###
 
@@ -55,7 +55,7 @@ String accessToken = accountInfoAuth.getAccessToken();
 
 *Required parameters*
 
-* intentId (identification of previously created intent, e.g. AccountRequestId)
+* intentId (identification of previously created intent, e.g. ConsentId)
 * state (random string)
 * nonce (random string)
 
@@ -130,6 +130,7 @@ JsonNode newTokens = accountInfoAuth.refreshToken(refreshToken);
 
 ## How to run the example ##
 
+Open *example/src/main/webapp/accountinfo_example.jsp*/*example/src/main/webapp/paymentinit_example.jsp* and replace <sandbox_api_host_of_the_bank> with correct value (e.g. api.sandbox.bank.hu).
 First build the *source*.
 
 ```shell

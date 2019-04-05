@@ -20,19 +20,19 @@
 <%@page import="com.fintechblocks.java.sdk.OpenBankingAuth"%>
 <%@page import="com.fintechblocks.java.sdk.Utils"%>
 <%
-  String clientId = "miklosapp@account-info-1.0";
-  String apiUrl = "https://api.sandbox.mkb.hu/account-info-1.0/open-banking/v1.1";
+  String clientId = "myapp@account-info-1.0";
+  String apiUrl = "https://<sandbox_api_host_of_the_bank>/account-info-1.0/open-banking/v3.1/aisp";
   String scope = "accounts";
   String redirectUri = "http://localhost:8080/example/accountinfo_example.jsp";
-  String tokenEndpointUri = "https://oidc-1.0.sandbox.mkb.hu/auth/realms/ftb-sandbox/protocol/openid-connect/token";
-  String authorizationEndpointURI = "https://oidc-1.0.sandbox.mkb.hu/auth/realms/ftb-sandbox/protocol/openid-connect/auth";
+  String tokenEndpointUri = "https://<sandbox_api_host_of_the_bank>/auth/realms/ftb-sandbox/protocol/openid-connect/token";
+  String authorizationEndpointURI = "https://<sandbox_api_host_of_the_bank>/auth/realms/ftb-sandbox/protocol/openid-connect/auth";
 
   String webRootPath = application.getRealPath("/").replace('\\', '/');
   Boolean code = false;
 
   File privateKeyFile = new File(webRootPath + "WEB-INF/classes/private_key.pem");
-  File accountRequestFile = new File(webRootPath + "WEB-INF/classes/account-request.json");
-  String accountRequest = Utils.fileToString(accountRequestFile);
+  File accountAccessConsentFile = new File(webRootPath + "WEB-INF/classes/account-access-consent.json");
+  String accountAccessConsent = Utils.fileToString(accountAccessConsentFile);
 
   String privateKey = Utils.fileToString(privateKeyFile);
   String keyID = "AfFNfYXZf3arkkxv_9zqRU4d1jp1b39Edw1bxfEK5-4";
@@ -46,16 +46,17 @@
 
       Map<String, String> headers = new HashMap<String, String>();
       headers.put("x-jws-signature",
-          accountInfoAuth.createSignatureHeader(accountRequest, "C=UK, ST=England, L=London, O=Acme Ltd."));
-      JsonNode accountRequestJson = callAPI(accessToken, apiUrl, "account-requests", "POST", headers,
-          accountRequest);
-      String intentId = accountRequestJson.get("Data").get("AccountRequestId").asText();
+          accountInfoAuth.createSignatureHeader(accountAccessConsent, "C=UK, ST=England, L=London, O=Acme Ltd."));
+      JsonNode accountAccessConsentJson = callAPI(accessToken, apiUrl, "account-access-consents", "POST", headers,
+          accountAccessConsent);
+      String intentId = accountAccessConsentJson.get("Data").get("ConsentId").asText();
       String state = RandomStringUtils.random(20, true, true);
       String nonce = RandomStringUtils.random(20, true, true);
       String authUrl = accountInfoAuth.generateAuthorizationUrl(intentId, state, nonce);
 
       response.sendRedirect(authUrl);
     } catch (Exception e) {
+      out.println(e.toString());
       e.printStackTrace();
     }
   } else {
@@ -66,6 +67,7 @@
       JsonNode result = callAPI(newAccessToken, apiUrl, "accounts", "GET", null, null);
       out.println(result.toString());
     } catch (Exception e) {
+      out.println(e.toString());
       e.printStackTrace();
     }
   }

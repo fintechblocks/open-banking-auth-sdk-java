@@ -1,0 +1,22 @@
+{
+  "Data": {
+    "Permissions": [
+      "ReadAccountsBasic",
+      "ReadAccountsDetail",
+      "ReadBalances",
+      "ReadBeneficiariesBasic",
+      "ReadBeneficiariesDetail",
+      "ReadDirectDebits",
+      "ReadProducts",
+      "ReadStandingOrdersBasic",
+      "ReadStandingOrdersDetail",
+      "ReadTransactionsDetail",
+      "ReadTransactionsCredits",
+      "ReadTransactionsDebits"
+    ],
+    "ExpirationDateTime": "2050-08-02T00:00:00+00:00",
+    "TransactionFromDateTime": "2017-05-03T00:00:00+00:00",
+    "TransactionToDateTime": "2019-12-03T00:00:00+00:00"
+  },
+  "Risk": {}
+}
