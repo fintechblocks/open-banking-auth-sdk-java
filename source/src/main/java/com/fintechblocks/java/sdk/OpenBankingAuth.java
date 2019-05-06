@@ -120,7 +120,7 @@ public class OpenBankingAuth {
     jwtHeaders.put("alg", "RS256");
     jwtHeaders.put("kid", this.keyID);
     jwtHeaders.put("b64", false);
-    jwtHeaders.put("http://openbanking.org.uk/iat", new Date().getTime());
+    jwtHeaders.put("http://openbanking.org.uk/iat", new Date().getTime() - 1000);
     jwtHeaders.put("http://openbanking.org.uk/iss", issuer);
     String[] crit = { "b64", "http://openbanking.org.uk/iat", "http://openbanking.org.uk/iss" };
     jwtHeaders.put("crit", crit);
