@@ -9,11 +9,6 @@
 <%@page import="java.util.HashMap"%>
 <%@page import="java.util.Map"%>
 
-<%@page import="javax.servlet.ServletException"%>
-<%@page import="javax.servlet.http.HttpServlet"%>
-<%@page import="javax.servlet.http.HttpServletRequest"%>
-<%@page import="javax.servlet.http.HttpServletResponse"%>
-
 <%@page import="org.apache.commons.lang.RandomStringUtils"%>
 
 <%@page import="com.fasterxml.jackson.databind.JsonNode"%>
@@ -23,9 +18,9 @@
   String clientId = "myapp@payment-init-1.0";
   String apiUrl = "https://<sandbox_api_host_of_the_bank>/payment-init-1.0/open-banking/v3.1/pisp";
   String scope = "payments";
-  String redirectUri = "http://localhost:8080/example/paymentinit_example.jsp";
   String tokenEndpointUri = "https://<sandbox_api_host_of_the_bank>/auth/realms/ftb-sandbox/protocol/openid-connect/token";
   String authorizationEndpointURI = "https://<sandbox_api_host_of_the_bank>/auth/realms/ftb-sandbox/protocol/openid-connect/auth";
+  String redirectUri = "http://localhost:8080/example-0.0.1-SNAPSHOT/paymentinit_example.jsp";
 
   String webRootPath = application.getRealPath("/").replace('\\', '/');
   Boolean code = false;
@@ -56,7 +51,7 @@
 
       String state = RandomStringUtils.random(20, true, true);
       String nonce = RandomStringUtils.random(20, true, true);
-      String authUrl = paymentInitAuth.generateAuthorizationUrl(intentId, state, nonce);
+      String authUrl = paymentInitAuth.generateAuthorizationUrl(intentId);
 
       response.sendRedirect(authUrl + "&state=" + intentId);
     } catch (Exception e) {
@@ -102,7 +97,7 @@
     return Utils.stringToJson(Utils.responseToString(connection));
   }%>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Payment test</title>

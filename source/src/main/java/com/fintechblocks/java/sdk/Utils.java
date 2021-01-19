@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -15,7 +14,6 @@ import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -35,9 +33,12 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 public final class Utils {
+  private Utils(){
+    throw new IllegalStateException( "Do not instantiate this class." );
+  }
 
-  public static void setFormUrlParameters(HttpURLConnection connection, HashMap<String, String> params)
-      throws UnsupportedEncodingException {
+
+  public static void setFormUrlParameters(HttpURLConnection connection, Map<String, String> params) {
     try {
       StringBuilder urlParamsStr = new StringBuilder();
       boolean first = true;
@@ -56,20 +57,20 @@ public final class Utils {
         wr.write(postData);
       }
     } catch (Exception e) {
-      throw new RuntimeException("Unexpected error while try to set url parameters.", e);
+      throw new SdkRuntimeException("Unexpected error while try to set url parameters.", e);
     }
   }
 
   @SuppressWarnings("deprecation")
   public static String createJWT(String privateKeyStr, Map<String, Object> claims) throws Exception {
-    PrivateKey privateKey = generatePublicKeyFromString(privateKeyStr, "RSA");
-    return Jwts.builder().addClaims(claims).signWith(SignatureAlgorithm.RS256, privateKey).compact();
+    PrivateKey privateKey = generatePrivateKeyFromString(privateKeyStr);
+    return Jwts.builder().addClaims(claims).signWith(privateKey, SignatureAlgorithm.RS256).compact();
   }
 
   @SuppressWarnings("deprecation")
   public static String sign(String privateKeyStr, String payload, Map<String, Object> headers) throws Exception {
-    PrivateKey privateKey = generatePublicKeyFromString(privateKeyStr, "RSA");
-    return Jwts.builder().setHeader(headers).setPayload(payload).signWith(SignatureAlgorithm.RS256, privateKey)
+    PrivateKey privateKey = generatePrivateKeyFromString(privateKeyStr);
+    return Jwts.builder().setHeader(headers).setPayload(payload).signWith(privateKey, SignatureAlgorithm.RS256)
         .compact();
   }
 
@@ -77,11 +78,11 @@ public final class Utils {
     try {
       return Jwts.parser().base64UrlDecodeWith(io.jsonwebtoken.io.Decoders.BASE64).parseClaimsJws(jwt).getBody();
     } catch (Exception e) {
-      throw new RuntimeException("Unexpected error while try to decode jwt.", e);
+      throw new SdkRuntimeException("Unexpected error while try to decode jwt.", e);
     }
   }
 
-  private static PrivateKey generatePublicKeyFromString(String keyStr, String algorithm) throws Exception {
+  private static PrivateKey generatePrivateKeyFromString(String keyStr) throws Exception {
     PrivateKey privateKey = null;
     if (keyStr.length() > 1) {
       keyStr = keyStr.replace("-----BEGIN RSA PRIVATE KEY-----", "").replace("-----END RSA PRIVATE KEY-----", "")
@@ -99,48 +100,51 @@ public final class Utils {
 
       PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(privKey);
       KeyFactory fact = KeyFactory.getInstance("RSA");
-      PrivateKey key = fact.generatePrivate(spec);
-      privateKey = key;
+      privateKey = fact.generatePrivate(spec);
     }
     return privateKey;
   }
 
   public static JsonNode stringToJson(String json) {
     try {
-      ObjectMapper mapper = new ObjectMapper();
-      JsonNode actualObj = mapper.readTree(json);
-      return actualObj;
+      return new ObjectMapper().readTree(json);
     } catch (IOException e) {
-      throw new RuntimeException("Unexpected error while try to parse string to json.", e);
+      throw new SdkRuntimeException("Unexpected error while try to parse string to json.", e);
     }
   }
 
   public static String responseToString(HttpURLConnection connection) {
     try {
-      BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+      BufferedReader reader;
+      if (100 <= connection.getResponseCode() && connection.getResponseCode() <= 399) {
+    	  reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+      } else {
+    	  reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+      }
       String inputLine;
-      StringBuffer content = new StringBuffer();
+      StringBuilder content = new StringBuilder();
       while ((inputLine = reader.readLine()) != null) {
         content.append(inputLine);
       }
       reader.close();
       return content.toString();
     } catch (Exception e) {
-      throw new RuntimeException("Unexpected error while get response content.", e);
+      throw new SdkRuntimeException("Unexpected error while get response content.", e);
     }
   }
 
   public static String fileToString(File file) {
     try {
-      String str, result = "";
+      String str = "";
+      StringBuilder result = new StringBuilder();
       BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
       while ((str = bufferedReader.readLine()) != null) {
-        result += str + "\n";
+        result.append(str + "\n");
       }
       bufferedReader.close();
-      return result;
+      return result.toString();
     } catch (Exception e) {
-      throw new RuntimeException("Unexpected error while convert file to string.", e);
+      throw new SdkRuntimeException("Unexpected error while convert file to string.", e);
     }
   }
   

@@ -16,7 +16,7 @@ Account-information API documentation: https://<sandbox_portal_host_of_the_bank>
 
 Payment-initiation API documentation: https://<sandbox_portal_host_of_the_bank>/api-documentation/payment-init-1.0
 
-### Create an OpenBankingAuth istance ###
+### Create an OpenBankingAuth instance ###
 
 **OpenBankingAuth(String clientId, String privateKey, String keyID, String redirectUri, String tokenEndpointUri, String authEndpointUri, String scope) - constructor**
 
@@ -56,13 +56,11 @@ String accessToken = accountInfoAuth.getAccessToken();
 *Required parameters*
 
 * intentId (identification of previously created intent, e.g. ConsentId)
-* state (random string)
-* nonce (random string)
 
 **Usage**
 
 ```java
-String authUrl = accountInfoAuth.generateAuthorizationUrl(intentId, state, nonce);
+String authUrl = accountInfoAuth.generateAuthorizationUrl(intentId);
 ```
 
 ### Exhange authorization code to tokens ###
@@ -145,4 +143,4 @@ cd example
 mvn clean install
 ```
 
-Run example on a web-server (e.g. tomcat).
+Run example on a web-server (e.g. tomcat) and navigate to *http://localhost:8080/example-0.0.1-SNAPSHOT/accountinfo_example.jsp* or *http://localhost:8080/example-0.0.1-SNAPSHOT/paymentinit_example.jsp*

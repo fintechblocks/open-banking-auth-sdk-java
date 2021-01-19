@@ -11,6 +11,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.jsonwebtoken.Claims;
 
 public class OpenBankingAuth {
+  private static String HEADER_CONTENT_TYPE ="Content-Type";
+  private static String HEADER_CONTENT_TYPE_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
+  private static String OIDC_GRANT_TYPE = "grant_type";
+  private static String OIDC_GRANT_TYPE_CLIENT_CREDENTIALS = "client_credentials";
+  private static String OIDC_GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code";
+  private static String OIDC_SCOPE = "scope";
+  private static String OIDC_CLIENT_ASSERTION_TYPE = "client_assertion_type";
+  private static String OIDC_CLIENT_ASSERTION_TYPE_JWT_BEARER = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
+  private static String OIDC_CLIENT_ASSERTION = "client_assertion";
+  private static String OIDC_REFRESH_TOKEN = "refresh_token";
 
   private String clientId;
   private String privateKey;
@@ -35,27 +45,27 @@ public class OpenBankingAuth {
     URL url = new URL(this.tokenEndpointURI);
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     connection.setRequestMethod("POST");
-    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+    connection.setRequestProperty(HEADER_CONTENT_TYPE, HEADER_CONTENT_TYPE_X_WWW_FORM_URLENCODED);
     connection.setDoOutput(true);
 
-    HashMap<String, String> params = new HashMap<String, String>();
-    params.put("grant_type", "client_credentials");
-    params.put("scope", this.scope);
-    params.put("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
+    HashMap<String, String> params = new HashMap<>();
+    params.put(OIDC_GRANT_TYPE, OIDC_GRANT_TYPE_CLIENT_CREDENTIALS);
+    params.put(OIDC_SCOPE, this.scope);
+    params.put(OIDC_CLIENT_ASSERTION_TYPE, OIDC_CLIENT_ASSERTION_TYPE_JWT_BEARER);
 
-    Map<String, Object> clientAssertionClaims = new HashMap<String, Object>();
+    Map<String, Object> clientAssertionClaims = new HashMap<>();
     clientAssertionClaims.put("sub", this.clientId);
     clientAssertionClaims.put("aud", this.tokenEndpointURI);
     clientAssertionClaims.put("exp", Utils.createExpirationDate(1));
 
-    params.put("client_assertion", Utils.createJWT(this.privateKey, clientAssertionClaims));
+    params.put(OIDC_CLIENT_ASSERTION, Utils.createJWT(this.privateKey, clientAssertionClaims));
     Utils.setFormUrlParameters(connection, params);
 
     JsonNode tokensJson = Utils.stringToJson(Utils.responseToString(connection));
     return tokensJson.get("access_token").asText();
   }
 
-  public String generateAuthorizationUrl(String intentId, String state, String nonce) throws Exception {
+  public String generateAuthorizationUrl(String intentId) throws Exception {
     StringBuilder url = new StringBuilder();
     url.append(this.authorizationEndpointURI).append("?");
     url.append("response_type=code&");
@@ -63,26 +73,20 @@ public class OpenBankingAuth {
     url.append("redirect_uri=").append(this.redirectUri).append("&");
     url.append("scope=").append(this.scope).append("&");
 
-    Map<String, Object> clientAssertionClaims = new HashMap<String, Object>();
-    long now = System.currentTimeMillis();
-    clientAssertionClaims.put("sub", this.clientId);
-    clientAssertionClaims.put("aud", this.tokenEndpointURI);
-    clientAssertionClaims.put("exp", (now / 1000) + 60);
-
-    Map<String, Object> payload = new HashMap<String, Object>();
+    Map<String, Object> payload = new HashMap<>();
     payload.put("client_id", this.clientId);
     payload.put("redirect_uri", this.redirectUri);
 
-    Map<String, Object> openbankingIntentId = new HashMap<String, Object>();
+    Map<String, Object> openbankingIntentId = new HashMap<>();
     openbankingIntentId.put("value", intentId);
 
-    Map<String, Object> userInfo = new HashMap<String, Object>();
+    Map<String, Object> userInfo = new HashMap<>();
     userInfo.put("openbanking_intent_id", openbankingIntentId);
 
-    Map<String, Object> idToken = new HashMap<String, Object>();
+    Map<String, Object> idToken = new HashMap<>();
     idToken.put("openbanking_intent_id", openbankingIntentId);
 
-    Map<String, Object> claims = new HashMap<String, Object>();
+    Map<String, Object> claims = new HashMap<>();
     claims.put("userinfo", userInfo);
     claims.put("id_token", idToken);
 
@@ -96,27 +100,27 @@ public class OpenBankingAuth {
     URL url = new URL(this.tokenEndpointURI);
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     connection.setRequestMethod("POST");
-    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+    connection.setRequestProperty(HEADER_CONTENT_TYPE, HEADER_CONTENT_TYPE_X_WWW_FORM_URLENCODED);
     connection.setDoOutput(true);
 
-    HashMap<String, String> params = new HashMap<String, String>();
-    params.put("grant_type", "authorization_code");
+    HashMap<String, String> params = new HashMap<>();
+    params.put(OIDC_GRANT_TYPE, OIDC_GRANT_TYPE_AUTHORIZATION_CODE);
     params.put("code", code);
     params.put("redirect_uri", this.redirectUri);
-    params.put("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
+    params.put(OIDC_CLIENT_ASSERTION_TYPE, OIDC_CLIENT_ASSERTION_TYPE_JWT_BEARER);
 
-    Map<String, Object> clientAssertionClaims = new HashMap<String, Object>();
+    Map<String, Object> clientAssertionClaims = new HashMap<>();
     clientAssertionClaims.put("sub", this.clientId);
     clientAssertionClaims.put("aud", this.tokenEndpointURI);
     clientAssertionClaims.put("exp", Integer.MAX_VALUE);
-    params.put("client_assertion", Utils.createJWT(this.privateKey, clientAssertionClaims));
+    params.put(OIDC_CLIENT_ASSERTION, Utils.createJWT(this.privateKey, clientAssertionClaims));
 
     Utils.setFormUrlParameters(connection, params);
     return Utils.stringToJson(Utils.responseToString(connection));
   }
 
   public String createSignatureHeader(String body, String issuer) throws Exception {
-    Map<String, Object> jwtHeaders = new HashMap<String, Object>();
+    Map<String, Object> jwtHeaders = new HashMap<>();
     jwtHeaders.put("alg", "RS256");
     jwtHeaders.put("kid", this.keyID);
     jwtHeaders.put("b64", false);
@@ -143,20 +147,20 @@ public class OpenBankingAuth {
     URL url = new URL(this.tokenEndpointURI);
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     connection.setRequestMethod("POST");
-    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+    connection.setRequestProperty(HEADER_CONTENT_TYPE, HEADER_CONTENT_TYPE_X_WWW_FORM_URLENCODED);
     connection.setDoOutput(true);
 
-    HashMap<String, String> params = new HashMap<String, String>();
-    params.put("grant_type", "refresh_token");
-    params.put("refresh_token", refreshToken);
-    params.put("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
+    HashMap<String, String> params = new HashMap<>();
+    params.put(OIDC_GRANT_TYPE, OIDC_REFRESH_TOKEN);
+    params.put(OIDC_REFRESH_TOKEN, refreshToken);
+    params.put(OIDC_CLIENT_ASSERTION_TYPE, OIDC_CLIENT_ASSERTION_TYPE_JWT_BEARER);
     
-    Map<String, Object> clientAssertionClaims = new HashMap<String, Object>();
+    Map<String, Object> clientAssertionClaims = new HashMap<>();
     clientAssertionClaims.put("sub", this.clientId);
     clientAssertionClaims.put("aud", this.tokenEndpointURI);
     clientAssertionClaims.put("exp", Utils.createExpirationDate(1));
 
-    params.put("client_assertion", Utils.createJWT(this.privateKey, clientAssertionClaims));
+    params.put(OIDC_CLIENT_ASSERTION, Utils.createJWT(this.privateKey, clientAssertionClaims));
     Utils.setFormUrlParameters(connection, params);
 
     return Utils.stringToJson(Utils.responseToString(connection));
